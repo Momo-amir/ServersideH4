@@ -1,19 +1,24 @@
 @page
 @model BlazorApp1.Pages.TodoList
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
-@{
-    Layout = null;
-}
+<h3>Your Todo List</h3>
 
-<!DOCTYPE html>
+<form method="post">
+    <div class="form-group">
+        <label asp-for="NewItemTitle"></label>
+        <input asp-for="NewItemTitle" class="form-control" />
+        <span asp-validation-for="NewItemTitle" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-primary">Add</button>
+</form>
 
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-<div>
-    
-</div>
-</body>
-</html>
+<ul class="list-group mt-4">
+    @foreach (var item in Model.TodoItems)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            @item.Title
+            <span class="badge bg-@(item.IsDone ? "success" : "secondary")">@((item.IsDone ? "Done" : "Pending"))</span>
+        </li>
+    }
+</ul>

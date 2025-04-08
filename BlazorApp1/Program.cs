@@ -1,27 +1,84 @@
 using BlazorApp1.Components;
+using Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=identity.db";
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(connectionString));
+
+var todoDbConnectionString = builder.Configuration.GetConnectionString("TodoDb") ?? "Data Source=tododb.db";
+builder.Services.AddDbContext<TodoDbContext>(options =>
+    options.UseSqlite(todoDbConnectionString));
+
+builder.Services
+    .AddDefaultIdentity<IdentityUser>(options =>
+    {
+        // Your password config here
+        options.Password.RequiredLength = 8;
+        options.Password.RequireDigit = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+    })
+    .AddRoles<IdentityRole>()                     
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = "704519639950-07rhrpmpqovklt4alqjcefv1om8okboi.apps.googleusercontent.com";
+        options.ClientSecret = "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";
+    });
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddRazorPages(); // Added to support Razor Pages
+
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var roles = new[] { "Admin", "User" };
+
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
+
+// 1) Authentication & Authorization
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
 
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+// 2) Map Identity (login, register, etc.)
+app.MapRazorPages();  // required for Identity UI
 
+// 3) Map your Blazor components
+// Force authentication on *all* pages by calling RequireAuthorization()
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode()
+    .RequireAuthorization();
+
+// 4) Alternatively, if you have a fallback page like _Host:
 app.Run();
