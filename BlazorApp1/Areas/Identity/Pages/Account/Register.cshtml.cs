@@ -106,7 +106,9 @@ namespace BlazorApp1.Areas.Identity.Pages.Account
             [Required]
             public string Role { get; set; }
             
-
+            [Required]
+            [Display(Name = "Full Name")]
+            public string FullName { get; set; }
         }
         public List<SelectListItem> RoleList { get; set; }
 
@@ -129,13 +131,17 @@ namespace BlazorApp1.Areas.Identity.Pages.Account
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
                 var result = await _userManager.CreateAsync(user, Input.Password);
+             
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
 
                     var userId = await _userManager.GetUserIdAsync(user);
+                    await _userManager.AddToRoleAsync(user, Input.Role);
+                    await _userManager.SetAuthenticationTokenAsync(user, "Default", "FullName", Input.FullName);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                     var callbackUrl = Url.Page(

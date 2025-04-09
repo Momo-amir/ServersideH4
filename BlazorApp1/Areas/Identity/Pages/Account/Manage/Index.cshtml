@@ -20,6 +20,19 @@
                 <label asp-for="Input.PhoneNumber" class="form-label"></label>
                 <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
             </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Input.FullName" class="form-control" placeholder="Enter your full name" />
+                <label asp-for="Input.FullName" class="form-label"></label>
+                <span asp-validation-for="Input.FullName" class="text-danger"></span>
+            </div>
+            @if (Model.AllRoles?.Count > 0)
+            {
+                <div class="form-group mb-3">
+                    <label asp-for="Input.Role" class="form-label"></label>
+                    <select asp-for="Input.Role" asp-items="Model.AllRoles" class="form-control"></select>
+                    <span asp-validation-for="Input.Role" class="text-danger"></span>
+                </div>
+            }
             <button id="update-profile-button" type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
         </form>
     </div>
