@@ -1,54 +1,71 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.ComponentModel.DataAnnotations;
+using BlazorApp1.Services;
+using System.Security.Cryptography;
+using System;
+using System.Threading.Tasks;
 using Data;
 
-[Authorize]
-public class CprModel : PageModel
+namespace BlazorApp1.Pages
 {
-    private readonly TodoDbContext _todoDb;
-    private readonly UserManager<IdentityUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
-
-    public CprModel(TodoDbContext todoDb, UserManager<IdentityUser> userManager, RoleManager<IdentityRole> roleManager)
+    public class CprModel : PageModel
     {
-        _todoDb = todoDb;
-        _userManager = userManager;
-        _roleManager = roleManager;
-    }
+        private readonly IHashingService _hashingService;
+        private readonly TodoDbContext _todoDbContext;
 
-    [BindProperty]
-    [Required]
-    [Display(Name = "CPR Number")]
-    public string CprValue { get; set; }
-
-    public string UserName { get; set; }
-    public IList<string> Roles { get; set; }
-
-    public async Task<IActionResult> OnGetAsync()
-    {
-        var user = await _userManager.GetUserAsync(User);
-        UserName = user?.UserName;
-        Roles = (await _userManager.GetRolesAsync(user)).ToList();
-        return Page();
-    }
-
-    public async Task<IActionResult> OnPostAsync()
-    {
-        if (!ModelState.IsValid)
-            return Page();
-
-        var user = await _userManager.GetUserAsync(User);
-        var existing = _todoDb.Cprs.FirstOrDefault(x => x.UserId == user.Id);
-
-        if (existing == null)
+        public CprModel(IHashingService hashingService, TodoDbContext todoDbContext)
         {
-            _todoDb.Cprs.Add(new Cpr { UserId = user.Id, Value = CprValue });
-            await _todoDb.SaveChangesAsync();
+            _hashingService = hashingService;
+            _todoDbContext = todoDbContext;
         }
 
-        return RedirectToPage("/TodoList");
+        // Bind the CPR input to this property
+        [BindProperty]
+        public string CprValue { get; set; }
+        public string UserName { get; set; }
+        public string[] Roles { get; set; }
+
+        public void OnGet()
+        {
+            // Initialize any page data here
+            UserName = User?.Identity?.Name;
+            // Initialize Roles to an empty array to avoid null reference issues
+            Roles = new string[0];
+        }
+
+        public async Task<IActionResult> OnPostAsync()
+        {
+            if (!ModelState.IsValid)
+            {
+                return Page();
+            }
+
+            // Generate a 16-byte random salt
+            byte[] salt = new byte[16];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(salt);
+            }
+
+            int iterations = 10000;
+            string hashAlgorithm = "SHA256";
+
+            // Hash the CPR value using PBKDF2 with salt, iteration count, and algorithm
+            string hashedCpr = _hashingService.HashPBKDF2(CprValue, salt, iterations, hashAlgorithm);
+            // Combine hash with parameters so that they can be verified later
+            string storedValue = $"{hashedCpr}:{Convert.ToBase64String(salt)}:{iterations}:{hashAlgorithm}";
+
+            // Create a new CPR record; assuming your Cpr entity includes UserId and Value properties
+            var cprRecord = new Cpr
+            {
+                UserId = User?.Identity?.Name,
+                Value = storedValue
+            };
+
+            _todoDbContext.Cprs.Add(cprRecord);
+            await _todoDbContext.SaveChangesAsync();
+
+            return RedirectToPage("/TodoList");
+        }
     }
 }

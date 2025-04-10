@@ -9,7 +9,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(connectionString));
 
-var todoDbConnectionString = builder.Configuration.GetConnectionString("TodoDb") ?? "Data Source=tododb.db";
+var todoDbConnectionString = builder.Configuration.GetConnectionString("TodoDbContextConnection") ?? "Data Source=tododb.db";
 builder.Services.AddDbContext<TodoDbContext>(options =>
     options.UseSqlite(todoDbConnectionString));
 
@@ -38,6 +38,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddRazorPages(); // Added to support Razor Pages
+builder.Services.AddScoped<BlazorApp1.Services.IHashingService, BlazorApp1.Services.HashingService>();
 
 var app = builder.Build();
 

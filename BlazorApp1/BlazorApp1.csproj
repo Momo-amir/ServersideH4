@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="BCrypt.Net" Version="0.1.0" />
       <PackageReference Include="Blazor.QRCodeJS" Version="1.0.0" />
       <PackageReference Include="IdentityUserRoleManagement" Version="1.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.14" />

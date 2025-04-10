@@ -1,8 +1,10 @@
 @page
-@model CprModel
+@model BlazorApp1.Pages.CprModel
+@using Data
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-
+@inject TodoDbContext TodoDbContext
 <h3>Enter CPR Number</h3>
 
 <p>Welcome, @Model.UserName!</p>
