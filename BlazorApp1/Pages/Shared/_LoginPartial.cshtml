@@ -4,12 +4,18 @@
 @inject UserManager<IdentityUser> UserManager
 
 @{
-    var currentUser = await UserManager.GetUserAsync(User);
-    // Retrieve the FullName token stored for the current user
-    var fullName = await UserManager.GetAuthenticationTokenAsync(currentUser, "Default", "FullName");
-    // Retrieve the roles for the current user
-    var roles = await UserManager.GetRolesAsync(currentUser);
-    var roleString = string.Join(", ", roles);
+    string fullName = "";
+    string roleString = "";
+    if (SignInManager.IsSignedIn(User))
+    {
+         var currentUser = await UserManager.GetUserAsync(User);
+         if (currentUser != null)
+         {
+              fullName = await UserManager.GetAuthenticationTokenAsync(currentUser, "Default", "FullName") ?? "";
+              var roles = await UserManager.GetRolesAsync(currentUser);
+              roleString = string.Join(", ", roles);
+         }
+    }
 }
 
 <ul class="navbar-nav">
@@ -33,5 +39,3 @@
         </li>
     }
 </ul>
-
-

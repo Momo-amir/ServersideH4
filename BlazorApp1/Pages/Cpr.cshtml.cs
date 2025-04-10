@@ -2,9 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using BlazorApp1.Services;
 using System.Security.Cryptography;
-using System;
-using System.Threading.Tasks;
+
 using Data;
+using System.Globalization; // Added for culture-specific parsing
+
 
 namespace BlazorApp1.Pages
 {
@@ -40,32 +41,70 @@ namespace BlazorApp1.Pages
                 return Page();
             }
 
-            // Generate a 16-byte random salt
-            byte[] salt = new byte[16];
-            using (var rng = RandomNumberGenerator.Create())
+            // Retrieve existing CPR record if it exists
+            var existingCpr = _todoDbContext.Cprs.FirstOrDefault(c => User.Identity != null && c.UserId == User.Identity.Name);
+
+            if (existingCpr != null)
             {
-                rng.GetBytes(salt);
+                // Validate the input against the stored record.
+                // Expected stored value format: hashedCpr:base64Salt:iterations:hashAlgorithm
+                var parts = existingCpr.Value.Split(':');
+                if (parts.Length != 4)
+                {
+                    ModelState.AddModelError(string.Empty, "Stored CPR record is invalid.");
+                    return Page();
+                }
+
+                var storedHash = parts[0];
+                var saltBase64 = parts[1];
+                var iterationsStr = parts[2];
+                var hashAlgorithm = parts[3];
+
+                // Use the culture-specific overload to disambiguate TryParse
+                if (!int.TryParse(iterationsStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int iterations))
+                {
+                    ModelState.AddModelError(string.Empty, "Stored CPR iterations is invalid.");
+                    return Page();
+                }
+
+                var salt = Convert.FromBase64String(saltBase64);
+                bool isValid = _hashingService.VerifyPBKDF2(CprValue, storedHash, salt, iterations, hashAlgorithm);
+                if (!isValid)
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid CPR number.");
+                    return Page();
+                }
+
+                // Valid CPR number found, mark the session as verified and navigate to TodoList page.
+                HttpContext.Session.SetString("CPRVerified", "true");
+                return RedirectToPage("/TodoList");
             }
-
-            int iterations = 10000;
-            string hashAlgorithm = "SHA256";
-
-            // Hash the CPR value using PBKDF2 with salt, iteration count, and algorithm
-            string hashedCpr = _hashingService.HashPBKDF2(CprValue, salt, iterations, hashAlgorithm);
-            // Combine hash with parameters so that they can be verified later
-            string storedValue = $"{hashedCpr}:{Convert.ToBase64String(salt)}:{iterations}:{hashAlgorithm}";
-
-            // Create a new CPR record; assuming your Cpr entity includes UserId and Value properties
-            var cprRecord = new Cpr
+            else
             {
-                UserId = User?.Identity?.Name,
-                Value = storedValue
-            };
+                // No CPR record exists, so create one.
+                byte[] salt = new byte[16];
+                using (var rng = RandomNumberGenerator.Create())
+                {
+                    rng.GetBytes(salt);
+                }
 
-            _todoDbContext.Cprs.Add(cprRecord);
-            await _todoDbContext.SaveChangesAsync();
+                int iterations = 10000;
+                string hashAlgorithm = "SHA256";
+                string hashedCpr = _hashingService.HashPBKDF2(CprValue, salt, iterations, hashAlgorithm);
+                string storedValue = $"{hashedCpr}:{Convert.ToBase64String(salt)}:{iterations}:{hashAlgorithm}";
 
-            return RedirectToPage("/TodoList");
+                var cprRecord = new Cpr
+                {
+                    UserId = User?.Identity?.Name,
+                    Value = storedValue
+                };
+                _todoDbContext.Cprs.Add(cprRecord);
+                await _todoDbContext.SaveChangesAsync();
+
+                // Mark the session as verified.
+                HttpContext.Session.SetString("CPRVerified", "true");
+                return RedirectToPage("/TodoList");
+            }
         }
     }
 }

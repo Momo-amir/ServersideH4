@@ -27,6 +27,7 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+
 builder.Services.AddAuthentication()
     .AddGoogle(options =>
     {
@@ -35,6 +36,7 @@ builder.Services.AddAuthentication()
     });
 
 // Add services to the container.
+builder.Services.AddSession();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddHttpClient<IAsymmetricEncryptionService, AsymmetricEncryptionService>(client =>
@@ -74,9 +76,13 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+
 // 1) Authentication & Authorization
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSession();
+
+app.UseMiddleware<BlazorApp1.Middleware.RequireCprMiddleware>();
 
 app.UseAntiforgery();
 
