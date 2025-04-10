@@ -4,6 +4,7 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>blazorapp1-2e2c4194-4c4d-49db-b7e2-8c511a92df5f</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
