@@ -37,7 +37,10 @@ builder.Services.AddAuthentication()
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-
+builder.Services.AddHttpClient<IAsymmetricEncryptionService, AsymmetricEncryptionService>(client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7090/");
+});
 builder.Services.AddRazorPages(); // Added to support Razor Pages
 builder.Services.AddScoped<IHashingService, HashingService>();
 // For symmetric encryption (if needed)

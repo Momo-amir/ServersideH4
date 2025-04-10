@@ -56,7 +56,7 @@ namespace BlazorApp1.Services
         public async Task<byte[]> EncryptAsync(string plaintext)
         {
             // Set the API endpoint URL (update this URL as appropriate)
-            var apiUrl = "https://localhost:5001/api/encrypt";
+            var apiUrl = "https://localhost:7090/api/encrypt";
 
             // Create the request payload containing the Base64-encoded public key and the plaintext.
             var requestModel = new EncryptionRequest

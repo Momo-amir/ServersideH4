@@ -26,4 +26,10 @@
       <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Users\momoamer\Pages\Shared\_LoginPartial.cshtml" />
+      <_ContentIncludedByDefault Remove="Users\momoamer\Pages\_ViewImports.cshtml" />
+      <_ContentIncludedByDefault Remove="Users\momoamer\Pages\_ViewStart.cshtml" />
+    </ItemGroup>
+
 </Project>

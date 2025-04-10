@@ -14,7 +14,6 @@ namespace BlazorApp1.Services
     public class SymmetricEncryptionService : ISymmetricEncryptionService
     {
         // For symmetric encryption we use AES.
-        // In production you should persist the key and IV so that encryption remains consistent across restarts.
         // Here, for demonstration, we generate them on instantiation.
         private readonly byte[] _key;
         private readonly byte[] _iv;

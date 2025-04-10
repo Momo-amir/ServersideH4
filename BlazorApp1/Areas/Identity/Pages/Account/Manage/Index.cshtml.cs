@@ -78,12 +78,15 @@ namespace BlazorApp1.Areas.Identity.Pages.Account.Manage
         {
             var userName = await _userManager.GetUserNameAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+            // Retrieve the FullName token from the user store
+            var fullName = await _userManager.GetAuthenticationTokenAsync(user, "Default", "FullName");
 
             Username = userName;
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
+                PhoneNumber = phoneNumber,
+                FullName = fullName // Set the full name
             };
 
             AllRoles = _roleManager.Roles.Select(r => new SelectListItem

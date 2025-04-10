@@ -115,7 +115,8 @@ namespace BlazorApp1.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
-                    return LocalRedirect(returnUrl);
+                    return RedirectToPage("/Cpr", new { returnUrl });
+
                 }
                 if (result.RequiresTwoFactor)
                 {

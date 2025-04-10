@@ -6,7 +6,9 @@ using System.ComponentModel.DataAnnotations;
 using Data;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using BlazorApp1.Services;
 
 namespace BlazorApp1.Pages;
 
@@ -15,11 +17,16 @@ public class TodoList : PageModel
 {
     private readonly TodoDbContext _db;
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly IAsymmetricEncryptionService _asymmetricEncryptionService;
 
-    public TodoList(TodoDbContext db, UserManager<IdentityUser> userManager)
+
+    public TodoList(TodoDbContext db, UserManager<IdentityUser> userManager,
+        IAsymmetricEncryptionService asymmetricEncryptionService)
     {
         _db = db;
         _userManager = userManager;
+        _asymmetricEncryptionService = asymmetricEncryptionService;
+
     }
 
     [BindProperty]
@@ -32,7 +39,24 @@ public class TodoList : PageModel
     public async Task<IActionResult> OnGetAsync()
     {
         var user = await _userManager.GetUserAsync(User);
-        TodoItems = _db.TodoList.Where(t => t.UserId == user.Id).ToList();
+        var encryptedItems = _db.TodoList.Where(t => t.UserId == user.Id).ToList();
+        TodoItems = new List<TodoItem>();
+        foreach (var item in encryptedItems)
+        {
+            try
+            {
+                byte[] cipherBytes = Convert.FromBase64String(item.Title);
+                byte[] plainBytes = _asymmetricEncryptionService.Decrypt(cipherBytes);
+                item.Title = System.Text.Encoding.UTF8.GetString(plainBytes);
+            }
+            catch
+            {
+                item.Title = "Decryption Error";
+            }
+
+            TodoItems.Add(item);
+        }
+
         return Page();
     }
 
@@ -41,17 +65,38 @@ public class TodoList : PageModel
         var user = await _userManager.GetUserAsync(User);
         if (!ModelState.IsValid)
         {
-            TodoItems = _db.TodoList.Where(t => t.UserId == user.Id).ToList();
+            var encryptedItems = _db.TodoList.Where(t => t.UserId == user.Id).ToList();
+            TodoItems = new List<TodoItem>();
+            foreach (var item in encryptedItems)
+            {
+                try
+                {
+                    byte[] cipherBytes = Convert.FromBase64String(item.Title);
+                    byte[] plainBytes = _asymmetricEncryptionService.Decrypt(cipherBytes);
+                    item.Title = Encoding.UTF8.GetString(plainBytes);
+                }
+                catch
+                {
+                    item.Title = "Decryption Error";
+                }
+
+                TodoItems.Add(item);
+            }
+            
             return Page();
+
         }
+
+        // Encrypt NewItemTitle before saving
+        byte[] encryptedBytes = await _asymmetricEncryptionService.EncryptAsync(NewItemTitle);
+        string encryptedTitle = Convert.ToBase64String(encryptedBytes);
 
         var newItem = new TodoItem
         {
             UserId = user.Id,
-            Title = NewItemTitle,
+            Title = encryptedTitle,
             IsDone = false
         };
-
         _db.TodoList.Add(newItem);
         await _db.SaveChangesAsync();
 
