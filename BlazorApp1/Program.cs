@@ -1,4 +1,5 @@
 using BlazorApp1.Components;
+using BlazorApp1.Services;
 using Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -38,8 +39,12 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddRazorPages(); // Added to support Razor Pages
-builder.Services.AddScoped<BlazorApp1.Services.IHashingService, BlazorApp1.Services.HashingService>();
+builder.Services.AddScoped<IHashingService, HashingService>();
+// For symmetric encryption (if needed)
+builder.Services.AddScoped<ISymmetricEncryptionService, SymmetricEncryptionService>();
 
+// For asymmetric encryption – note the use of HttpClient:
+builder.Services.AddHttpClient<IAsymmetricEncryptionService, AsymmetricEncryptionService>();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

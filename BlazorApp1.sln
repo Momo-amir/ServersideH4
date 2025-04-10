@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp1", "BlazorApp1\BlazorApp1.csproj", "{BF5723D7-A0B2-4DE2-8A48-B40EC5663CDB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "API\API.csproj", "{8F1D1DA5-7F21-4E36-9914-D44BC134536C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{BF5723D7-A0B2-4DE2-8A48-B40EC5663CDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF5723D7-A0B2-4DE2-8A48-B40EC5663CDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF5723D7-A0B2-4DE2-8A48-B40EC5663CDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8F1D1DA5-7F21-4E36-9914-D44BC134536C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8F1D1DA5-7F21-4E36-9914-D44BC134536C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8F1D1DA5-7F21-4E36-9914-D44BC134536C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8F1D1DA5-7F21-4E36-9914-D44BC134536C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
