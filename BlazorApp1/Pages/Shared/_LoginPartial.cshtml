@@ -21,6 +21,9 @@
 <ul class="navbar-nav">
     @if (SignInManager.IsSignedIn(User))
     {
+        <li class="nav-item ">
+            <a class="nav-link text-dark" asp-page="/TodoList" > Todo List </a>
+        </li>
         <li class="nav-item">
             <a id="manage" class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @fullName (@roleString)</a>    </li>
         <li class="nav-item">

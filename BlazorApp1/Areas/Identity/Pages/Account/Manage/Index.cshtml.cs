@@ -136,6 +136,18 @@ namespace BlazorApp1.Areas.Identity.Pages.Account.Manage
                     return RedirectToPage();
                 }
             }
+            
+            var currentFullName = await _userManager.GetAuthenticationTokenAsync(user, "Default", "FullName") ?? "";
+            if (Input.FullName != currentFullName)
+            {
+                var setFullNameResult = await _userManager.SetAuthenticationTokenAsync(user, "Default", "FullName", Input.FullName);
+                if (!setFullNameResult.Succeeded)
+                {
+                    StatusMessage = "Unexpected error when trying to set full name.";
+                    return RedirectToPage();
+                }
+            }
+
 
             if (Input.Role != null)
             {
