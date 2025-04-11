@@ -1,11 +1,17 @@
-# Use official ASP.NET image
+# Use official ASP.NET image for the runtime.
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
-EXPOSE 443
-EXPOSE 80
+EXPOSE 8443
+# You can also expose 80 if necessary, but in our example, we focus on HTTPS.
 
+# Set environment variables for the certificate.
+ENV ASPNETCORE_Kestrel__Certificates__Default__Path=/https/devcert.pfx
+ENV ASPNETCORE_Kestrel__Certificates__Default__Password=yourpassword
 
-# Use SDK image to build app
+# Set ASPNETCORE_URLS so that Kestrel listens on HTTPS port 8443.
+ENV ASPNETCORE_URLS=https://+:8443
+
+# Use the SDK image to build the application.
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY . .
@@ -16,5 +22,4 @@ RUN dotnet publish "BlazorApp1.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-
 ENTRYPOINT ["dotnet", "BlazorApp1.dll"]
