@@ -20,7 +20,8 @@ namespace BlazorApp1.Middleware
             {
                 // Exclude paths that do not require a CPR check (e.g., CPR entry page, logout, account management).
                 if (!context.Request.Path.StartsWithSegments("/Cpr") &&
-                    !context.Request.Path.StartsWithSegments("/Account"))
+                    !context.Request.Path.StartsWithSegments("/Account")
+                    && !context.Request.Path.StartsWithSegments("/Identity/Account/Logout"))
                 {
                     // Check if the session flag "CPRVerified" is set to "true"
                     var cprVerified = context.Session.GetString("CPRVerified");

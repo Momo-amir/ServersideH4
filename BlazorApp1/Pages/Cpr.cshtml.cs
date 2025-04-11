@@ -7,37 +7,62 @@ using Data;
 using System.Globalization; // Added for culture-specific parsing
 
 
-namespace BlazorApp1.Pages
-{
-    public class CprModel : PageModel
-    {
-        private readonly IHashingService _hashingService;
-        private readonly TodoDbContext _todoDbContext;
+ namespace BlazorApp1.Pages
+ {
+         using Microsoft.AspNetCore.Identity;
+         public class CprModel : PageModel
+     {
+             private readonly IHashingService _hashingService;
+         private readonly TodoDbContext _todoDbContext;
+         private readonly UserManager<IdentityUser> _userManager;
+         private readonly SignInManager<IdentityUser> _signInManager;
+ 
+             public CprModel(IHashingService hashingService, TodoDbContext todoDbContext, UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+         {
+                 _hashingService = hashingService;
+                 _todoDbContext = todoDbContext;
+                 _userManager = userManager;
+                 _signInManager = signInManager;
+             }
+ 
+                 // Bind the CPR input to this property
+                     [BindProperty]
+             public string CprValue { get; set; }
+         public string UserName { get; set; }
+         public string[] Roles { get; set; }
 
-        public CprModel(IHashingService hashingService, TodoDbContext todoDbContext)
-        {
-            _hashingService = hashingService;
-            _todoDbContext = todoDbContext;
-        }
+         public async Task OnGetAsync()
+         {
+             if (_signInManager.IsSignedIn(User))
+             {
+                 var currentUser = await _userManager.GetUserAsync(User);
+                 if (currentUser != null)
+                 {
+                     // Retrieve the stored full name token and roles
+                     UserName = await _userManager.GetAuthenticationTokenAsync(currentUser, "Default", "FullName") ??
+                                "";
+                     var roles = await _userManager.GetRolesAsync(currentUser);
+                     Roles = roles.ToArray();
+                 }
+                 else
+                 {
+                     UserName = "";
+                     Roles = new string[0];
+                 }
+             }
+             else
+             {
+                 UserName = "";
+                 Roles = new string[0];
+             }
+         }
 
-        // Bind the CPR input to this property
-        [BindProperty]
-        public string CprValue { get; set; }
-        public string UserName { get; set; }
-        public string[] Roles { get; set; }
-
-        public void OnGet()
-        {
-            // Initialize any page data here
-            UserName = User?.Identity?.Name;
-            // Initialize Roles to an empty array to avoid null reference issues
-            Roles = new string[0];
-        }
-
-        public async Task<IActionResult> OnPostAsync()
+         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid)
             {
+                UserName = User?.Identity?.Name;
+                Roles = new string[0];
                 return Page();
             }
 
@@ -52,9 +77,10 @@ namespace BlazorApp1.Pages
                 if (parts.Length != 4)
                 {
                     ModelState.AddModelError(string.Empty, "Stored CPR record is invalid.");
+                    UserName = User?.Identity?.Name;
+                    Roles = new string[0];
                     return Page();
                 }
-
                 var storedHash = parts[0];
                 var saltBase64 = parts[1];
                 var iterationsStr = parts[2];
@@ -64,6 +90,8 @@ namespace BlazorApp1.Pages
                 if (!int.TryParse(iterationsStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int iterations))
                 {
                     ModelState.AddModelError(string.Empty, "Stored CPR iterations is invalid.");
+                    UserName = User?.Identity?.Name;
+                    Roles = new string[0];
                     return Page();
                 }
 
@@ -72,9 +100,10 @@ namespace BlazorApp1.Pages
                 if (!isValid)
                 {
                     ModelState.AddModelError(string.Empty, "Invalid CPR number.");
+                    UserName = User?.Identity?.Name;
+                    Roles = new string[0];
                     return Page();
                 }
-
                 // Valid CPR number found, mark the session as verified and navigate to TodoList page.
                 HttpContext.Session.SetString("CPRVerified", "true");
                 return RedirectToPage("/TodoList");

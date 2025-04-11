@@ -17,7 +17,6 @@ builder.Services.AddDbContext<TodoDbContext>(options =>
 builder.Services
     .AddDefaultIdentity<IdentityUser>(options =>
     {
-        // Your password config here
         options.Password.RequiredLength = 8;
         options.Password.RequireDigit = true;
         options.Password.RequireUppercase = true;
@@ -34,8 +33,8 @@ builder.Services.AddAuthentication()
         options.ClientId = "704519639950-07rhrpmpqovklt4alqjcefv1om8okboi.apps.googleusercontent.com";
         options.ClientSecret = "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";
     });
-
 // Add services to the container.
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSession();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

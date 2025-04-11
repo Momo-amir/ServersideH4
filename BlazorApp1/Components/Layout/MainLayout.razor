@@ -21,3 +21,25 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@inject NavigationManager NavigationManager
+@inject IHttpContextAccessor HttpContextAccessor
+
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Check session stored on server
+            var context = HttpContextAccessor.HttpContext;
+            if (context != null)
+            {
+                var cprVerified = context.Session.GetString("CPRVerified");
+                if (cprVerified != "true")
+                {
+                    NavigationManager.NavigateTo("/Cpr", forceLoad: true);
+                }
+            }
+        }
+    }
+}
