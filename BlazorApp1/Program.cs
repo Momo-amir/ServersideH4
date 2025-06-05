@@ -53,6 +53,15 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
+    // Migrate the Identity database (ApplicationDbContext)
+    var identityContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    identityContext.Database.Migrate();
+
+    // Optionally, migrate TodoDbContext as well if needed.
+    var todoContext = scope.ServiceProvider.GetRequiredService<TodoDbContext>();
+    todoContext.Database.Migrate();
+
+    // Then create roles if they don't already exist.
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var roles = new[] { "Admin", "User" };
 
